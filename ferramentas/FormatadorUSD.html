@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Formatador USD</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    background-color: #121212; /* Fundo escuro */
+    color: #fff; /* Texto branco */
+    font-family: 'Roboto', sans-serif; /* Fonte Roboto */
+    margin: 0;
+    padding: 0;
+  }
+
+  #entradaContainer {
+    width: 100%;
+    padding: 20px;
+  }
+
+  textarea {
+    width: 100%;
+    height: 150px;
+  }
+
+  .container {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+  }
+
+  .container div {
+    flex: 1;
+    margin: 0 10px;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #333;
+  }
+
+  #carregadasContainer {
+    background-color: #3498db; /* Azul */
+  }
+
+  #formatadasContainer {
+    background-color: #2ecc71; /* Verde */
+  }
+
+  #removidasContainer {
+    background-color: #e74c3c; /* Vermelho */
+  }
+
+  #errosContainer {
+    background-color: #f39c12; /* Amarelo */
+  }
+</style>
+<script>
+function calcularValor(valor, porcentagem) {
+  return valor * porcentagem;
+}
+
+function processarValores() {
+  const porcentagem = 0.7; // exemplo de porcentagem fixa
+  const textoValores = document.getElementById('entradaValores').value;
+  const linhas = textoValores.split('\n');
+  const carregadasContainer = document.getElementById('carregadasContainer');
+  const formatadasContainer = document.getElementById('formatadasContainer');
+  const removidasContainer = document.getElementById('removidasContainer');
+  const errosContainer = document.getElementById('errosContainer');
+
+  let carregadas = 0;
+  let removidas = 0;
+  let erros = 0;
+  let formatadas = '';
+
+  // Reseta os containers
+  carregadasContainer.textContent = 'Carregadas: 0';
+  removidasContainer.textContent = 'Removidas: 0';
+  errosContainer.textContent = 'Erros: 0';
+  formatadasContainer.textContent = '';
+
+  linhas.forEach((linha, index) => {
+    try {
+      const partes = linha.split('|');
+      if (partes.length === 5) {
+        const valorOriginal = partes[4].replace('USD', '').trim();
+        const valor = parseInt(valorOriginal, 10);
+        if (valor === 0 || valor === 1) {
+          removidas++;
+        } else {
+          const valorCalculado = calcularValor(valor, porcentagem);
+          formatadas += `${partes[0]}|${partes[1]}|${partes[2]}|${partes[3]}|${valorCalculado}USD\n`;
+          carregadas++;
+        }
+      } else {
+        erros++;
+      }
+    } catch(e) {
+      erros++;
+    }
+  });
+
+  carregadasContainer.textContent = 'Carregadas: ' + carregadas;
+  removidasContainer.textContent = 'Removidas: ' + removidas;
+  errosContainer.textContent = 'Erros: ' + erros;
+  formatadasContainer.textContent = formatadas;
+}
+</script>
+</head>
+<body>
+
+<div id="entradaContainer">
+  <textarea id="entradaValores" placeholder="Insira os valores em USD, um por linha"></textarea>
+  <button onclick="processarValores()">Processar Valores</button>
+</div>
+
+<div class="container">
+  <div id="carregadasContainer">Carregadas: 0</div>
+  <div id="removidasContainer">Removidas: 0</div>
+</div>
+
+<div id="formatadasContainer" class="container">
+  <!-- Texto formatado será injetado aqui -->
+</div>
+
+<div id="errosContainer" class="container">
+  <!-- Erros serão injetados aqui -->
+</div>
+
+</body>
+</html>

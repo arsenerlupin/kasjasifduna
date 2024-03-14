@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Formatador USD</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    background-color: #121212; /* Fundo mais escuro para conforto visual */
+    color: #0F0; /* Mantendo o texto verde para a temática */
+    font-family: 'Roboto', sans-serif; /* Uma fonte mais moderna */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  
+  div {
+    width: 90%;
+    max-width: 600px; /* Limita a largura para desktops */
+  }
+
+  textarea, input, button, #valoresContainer, #remocoesContainer {
+    background-color: #222; /* Fundo preto suavizado */
+    color: #0F0; /* Texto verde */
+    border: 2px solid #0F0; /* Borda verde */
+    border-radius: 5px; /* Bordas arredondadas */
+    padding: 10px; /* Espaçamento interno */
+    width: 100%;
+    box-sizing: border-box; /* Para não ultrapassar 100% de largura */
+    margin-bottom: 20px; /* Espaçamento entre os elementos */
+  }
+
+  button {
+    cursor: pointer; /* Cursor do mouse como ponteiro */
+    background-color: #0984e3; /* Cor de destaque */
+    color: white; /* Texto branco para contraste */
+    font-weight: bold; /* Texto em negrito */
+    transition: background-color 0.3s; /* Transição suave de cor */
+  }
+
+  button:hover {
+    background-color: #0aaff1; /* Mudança de cor ao passar o mouse */
+  }
+</style>
+<script>
+function calcularValor(valor, porcentagem) {
+  return Math.floor(valor * porcentagem);
+}
+
+function processarValores(valores, porcentagem) {
+  const container = document.getElementById('valoresContainer');
+  const remocoesContainer = document.getElementById('remocoesContainer');
+  container.innerHTML = ''; // Limpa o conteúdo anterior
+  let removidosPorSaldo = 0;
+  let removidosPorRepeticao = 0;
+  let resultados = [];
+  let linhasUnicas = new Set();
+
+  valores.forEach(linha => {
+    if (linhasUnicas.has(linha)) {
+      removidosPorRepeticao++;
+      return;
+    }
+
+    linhasUnicas.add(linha);
+    const partes = linha.split('|');
+    const valorOriginal = partes[4].replace('USD', '').trim();
+    const valorCalculado = calcularValor(parseInt(valorOriginal, 10), porcentagem);
+
+    if (parseInt(valorOriginal, 10) === 0 || parseInt(valorOriginal, 10) === 1) {
+      removidosPorSaldo++;
+      return;
+    }
+    
+    resultados.push(`${valorOriginal}|${valorCalculado}|${partes[0]}|${partes[1]}|${partes[2]}|${partes[3]}|${valorOriginal}USD`);
+  });
+
+  resultados.sort((a, b) => parseInt(b.split('|')[0]) - parseInt(a.split('|')[0]));
+
+  container.innerHTML = resultados.join('<br>');
+  remocoesContainer.innerHTML = `Itens removidos por saldo 0 ou 1: ${removidosPorSaldo}<br>Itens removidos por repetição: ${removidosPorRepeticao}`;
+}
+
+function enviarValores() {
+  const porcentagemInput = parseFloat(document.getElementById('porcentagemInput').value) / 100;
+  const textoValores = document.getElementById('textoValores').value;
+  const valoresUSD = textoValores.split('\n').filter(v => v.trim() !== '');
+  processarValores(valoresUSD, porcentagemInput);
+}
+
+function copiarValores() {
+  const container = document.getElementById('valoresContainer');
+  const elementoParaCopiar = document.createElement('textarea');
+  elementoParaCopiar.value = container.innerText;
+  document.body.appendChild(elementoParaCopiar);
+  elementoParaCopiar.select();
+  document.execCommand('copy');
+  document.body.removeChild(elementoParaCopiar);
+  alert('Valores copiados com sucesso!');
+}
+</script>
+</head>
+<body>
+
+<div>
+  <label for="porcentagemInput">Porcentagem:</label>
+  <input type="number" id="porcentagemInput" placeholder="Digite a porcentagem, ex: 70" value="70" />
+
+  <textarea id="textoValores" rows="10" placeholder="Insira os valores em USD, um por linha. Ex: 4054829843322345|09|2030|000|9USD"></textarea>
+  <button onclick="enviarValores()">Processar Valores</button>
+  <button onclick="copiarValores()">Copiar Valores</button>
+</div>
+
+<div id="valoresContainer"></div>
+<div id="remocoesContainer"></div>
+
+</body>
+</html>
